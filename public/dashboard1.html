@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Frota Municipal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white p-4 shadow-lg flex justify-between">
+        <h1 class="text-xl font-bold">Gestão de Frota</h1>
+        <button onclick="logout()" class="bg-red-500 px-4 py-1 rounded text-sm">Sair</button>
+    </nav>
+
+    <div class="p-8">
+        <h2 class="text-2xl font-semibold mb-6">Painel de Controle</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
+                <p class="text-gray-500 text-sm uppercase font-bold">Total Veículos</p>
+                <p id="totalVeiculos" class="text-3xl font-bold">...</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                <p class="text-gray-500 text-sm uppercase font-bold">Secretarias</p>
+                <p id="totalSecretarias" class="text-3xl font-bold">...</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500">
+                <p class="text-gray-500 text-sm uppercase font-bold">Agendamentos Hoje</p>
+                <p id="totalAgendamentos" class="text-3xl font-bold">...</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500">
+                <p class="text-gray-500 text-sm uppercase font-bold">Em Manutenção</p>
+                <p id="totalManutencao" class="text-3xl font-bold">0</p>
+            </div>
+        </div>
+        <div class="mt-12 bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="bg-gray-50 p-4 border-b flex justify-between items-center">
+                <h3 class="font-bold text-gray-700 text-lg">Gerenciamento</h3>
+
+                <div class="flex gap-3">
+                    <button onclick="abrirModal()"
+                        class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-all shadow-sm flex items-center gap-2">
+                        <span>+</span> Veículo
+                    </button>
+
+                    <button onclick="abrirModalSolicitante()"
+                        class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-all shadow-sm flex items-center gap-2">
+                        <span>+</span> Solicitante
+                    </button>
+                </div>
+            </div>
+            <table class="w-full text-left">
+                <thead class="bg-gray-50 text-gray-500 text-sm uppercase">
+                    <tr>
+                        <th class="p-4">Modelo</th>
+                        <th class="p-4">Placa</th>
+                        <th class="p-4">Secretaria</th>
+                        <th class="p-4">Status</th>
+                        <th class="p-4">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaVeiculos" class="divide-y">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="modalVeiculo"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-bold mb-4">Cadastrar Novo Veículo</h3>
+            <form id="formVeiculo" class="space-y-4">
+                <input type="text" id="modModelo" placeholder="Modelo (ex: Fiat Uno)" class="w-full p-2 border rounded"
+                    required>
+                <input type="text" id="modPlaca" placeholder="Placa (ex: BRA2E19)" class="w-full p-2 border rounded"
+                    required>
+                <input type="number" id="modCapacidade" placeholder="Capacidade (ex: 5)"
+                    class="w-full p-2 border rounded" required>
+                <input type="text" id="modTipo" placeholder="Tipo (ex: Administrativo)"
+                    class="w-full p-2 border rounded" required>
+
+                <div class="flex justify-end gap-2 mt-6">
+                    <button type="button" onclick="fecharModal()" class="px-4 py-2 text-gray-500">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Salvar
+                        Veículo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalSolicitante"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-bold mb-4">Cadastrar Solicitante</h3>
+            <form id="formSolicitante" class="space-y-4">
+                <input type="text" id="solNome" placeholder="Nome Completo" class="w-full p-2 border rounded" required>
+                <input type="text" id="solDocumento" placeholder="CPF ou Matrícula" class="w-full p-2 border rounded">
+                <input type="text" id="solTelefone" placeholder="Telefone" class="w-full p-2 border rounded">
+
+                <select id="solSecretaria" class="w-full p-2 border rounded">
+                    <option value="">Sem Secretaria Fixa (Geral)</option>
+                </select>
+
+                <div class="flex justify-end gap-2 mt-6">
+                    <button type="button" onclick="fecharModalSolicitante()"
+                        class="px-4 py-2 text-gray-500">Cancelar</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        // 1. Verificação de Segurança
+        const token = localStorage.getItem('token_frota');
+        if (!token) window.location.href = 'index.html';
+
+        // Variável global para controlar se estamos editando ou criando
+        let veiculoSendoEditadoId = null;
+
+        function logout () {
+            localStorage.removeItem('token_frota');
+            window.location.href = 'index.html';
+        }
+
+        // 2. Função Unificada para Carregar Tudo
+        async function carregarDados () {
+            try {
+                const headers = { 'Authorization': `Bearer ${token}` };
+
+                // Busca Stats (Cards)
+                const resStats = await fetch('http://localhost:3000/api/dashboard/stats', { headers });
+                if (resStats.status === 401) logout();
+                const dataStats = await resStats.json();
+
+                // Busca Lista de Veículos
+                const resVeiculos = await fetch('http://localhost:3000/api/veiculos', { headers });
+                const veiculos = await resVeiculos.json();
+
+                // Atualiza os Cards
+                document.getElementById('totalVeiculos').innerText = dataStats.cards.totalVeiculos;
+                document.getElementById('totalSecretarias').innerText = dataStats.cards.secretariasAtivas;
+                document.getElementById('totalAgendamentos').innerText = dataStats.cards.agendamentosHoje;
+
+                // Atualiza a Tabela
+                const tabela = document.getElementById('tabelaVeiculos');
+                tabela.innerHTML = '';
+
+                veiculos.forEach(v => {
+                    tabela.innerHTML += `
+                <tr class="hover:bg-gray-50 border-b">
+                    <td class="p-4 font-medium text-gray-800">${v.modelo}</td>
+                    <td class="p-4 text-gray-600 font-mono">${v.placa}</td>
+                    <td class="p-4 text-gray-600">${v.secretaria ? v.secretaria.nome : 'Frota Geral'}</td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 rounded-full text-xs font-bold ${v.status === 'DISPONIVEL' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                        }">
+                            ${v.status}
+                        </span>
+                    </td>
+                    <td class="p-4">
+                        <button onclick='abrirModal(${JSON.stringify(v)})' class="text-blue-600 hover:underline">
+                            Editar
+                        </button>
+                    </td>
+                </tr>
+                `;
+                });
+
+            } catch (err) {
+                console.error('Erro geral ao carregar dashboard:', err);
+            }
+        }
+
+        // Abrir modal (aceita dados para edição ou null para novo)
+        function abrirModal (dadosVeiculo = null) {
+            const modal = document.getElementById('modalVeiculo');
+            const titulo = modal.querySelector('h3');
+
+            if (dadosVeiculo) {
+                // Modo Edição
+                veiculoSendoEditadoId = dadosVeiculo.id;
+                titulo.innerText = "Editar Veículo";
+                document.getElementById('modModelo').value = dadosVeiculo.modelo;
+                document.getElementById('modPlaca').value = dadosVeiculo.placa;
+                document.getElementById('modCapacidade').value = dadosVeiculo.capacidade;
+                document.getElementById('modTipo').value = dadosVeiculo.tipo;
+            } else {
+                // Modo Cadastro
+                veiculoSendoEditadoId = null;
+                titulo.innerText = "Cadastrar Novo Veículo";
+                document.getElementById('formVeiculo').reset();
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function fecharModal () {
+            document.getElementById('modalVeiculo').classList.add('hidden');
+            document.getElementById('formVeiculo').reset();
+            veiculoSendoEditadoId = null;
+        }
+
+        // Abrir Modal de Solicitante e carregar secretarias
+        async function abrirModalSolicitante () {
+            document.getElementById('modalSolicitante').classList.remove('hidden');
+
+            const res = await fetch('http://localhost:3000/api/secretarias', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const secretarias = await res.json();
+            const select = document.getElementById('solSecretaria');
+
+            select.innerHTML = '<option value="">Sem Secretaria Fixa (Geral)</option>';
+            secretarias.forEach(s => {
+                select.innerHTML += `<option value="${s.id}">${s.nome}</option>`;
+            });
+        }
+
+        function fecharModalSolicitante () {
+            document.getElementById('modalSolicitante').classList.add('hidden');
+            document.getElementById('formSolicitante').reset();
+        }
+
+        // Enviar Formulário de Solicitante
+        document.getElementById('formSolicitante').onsubmit = async (e) => {
+            e.preventDefault();
+            const payload = {
+                nome: document.getElementById('solNome').value,
+                documento: document.getElementById('solDocumento').value,
+                telefone: document.getElementById('solTelefone').value,
+                secretariaId: document.getElementById('solSecretaria').value
+            };
+
+            const res = await fetch('http://localhost:3000/api/solicitantes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                fecharModalSolicitante();
+                alert('Solicitante cadastrado!');
+                // Aqui poderíamos ter uma função carregarSolicitantes() se tivéssemos uma tabela para eles
+            }
+        };
+
+        // Enviar formulário (Lógica de Criar ou Atualizar)
+        document.getElementById('formVeiculo').onsubmit = async (e) => {
+            e.preventDefault();
+
+            const payload = {
+                modelo: document.getElementById('modModelo').value,
+                placa: document.getElementById('modPlaca').value,
+                capacidade: document.getElementById('modCapacidade').value,
+                tipo: document.getElementById('modTipo').value,
+            };
+
+            // Define se vai para /api/veiculos (POST) ou /api/veiculos/ID (PUT)
+            const url = veiculoSendoEditadoId
+                ? `http://localhost:3000/api/veiculos/${veiculoSendoEditadoId}`
+                : 'http://localhost:3000/api/veiculos';
+
+            const metodo = veiculoSendoEditadoId ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method: metodo,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                fecharModal();
+                carregarDados();
+            } else {
+                alert('Erro ao salvar veículo');
+            }
+        };
+
+        // Executa ao abrir a página
+        carregarDados();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Frota Municipal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .aba-conteudo {
+            display: none;
+        }
+
+        .aba-ativa {
+            display: block;
+        }
+
+        #sidebar {
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-fechada {
+            transform: translateX(-100%);
+            width: 0 !important;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-100 flex h-screen overflow-hidden font-sans">
+
+    <aside id="sidebar" class="w-64 bg-slate-800 text-white flex flex-col shadow-2xl z-30 flex-shrink-0 relative">
+        <div class="p-6 text-xl font-black border-b border-slate-700 flex justify-between items-center">
+            <span>FROTA ADM</span>
+            <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white md:hidden">✕</button>
+        </div>
+        <nav class="flex-1 p-4 space-y-1 text-sm font-medium">
+            <button onclick="trocarAba('aba-dashboard', this)"
+                class="btn-menu w-full text-left p-3 rounded-xl flex items-center gap-3 bg-slate-700 font-bold transition-all">📊
+                Painel Geral</button>
+            <button onclick="trocarAba('aba-agendamentos', this)"
+                class="btn-menu w-full text-left p-3 rounded-xl flex items-center gap-3 hover:bg-slate-700 transition-all">📅
+                Agendamentos</button>
+            <div class="pt-6 pb-2 text-[10px] uppercase text-slate-500 font-bold px-3 tracking-widest">Gestão</div>
+            <button onclick="trocarAba('aba-secretarias', this)"
+                class="btn-menu w-full text-left p-3 rounded-xl flex items-center gap-3 hover:bg-slate-700 transition-all">🏢
+                Secretarias</button>
+            <button onclick="trocarAba('aba-departamentos', this)"
+                class="btn-menu w-full text-left p-3 rounded-xl flex items-center gap-3 hover:bg-slate-700 transition-all">🏢
+                Departamentos</button>
+            <button onclick="trocarAba('aba-veiculos', this)"
+                class="btn-menu w-full text-left p-3 rounded-xl flex items-center gap-3 hover:bg-slate-700 transition-all">🚘
+                Veículos</button>
+            <button onclick="trocarAba('aba-solicitantes', this)"
+                class="btn-menu w-full text-left p-3 rounded-xl flex items-center gap-3 hover:bg-slate-700 transition-all">👥
+                Solicitantes</button>
+            <button onclick="trocarAba('aba-condutores', this)"
+                class="btn-menu w-full text-left p-3 rounded-xl flex items-center gap-3 hover:bg-slate-700 transition-all text-slate-300">
+                <span class="text-lg">🪪</span> Condutores
+            </button>
+            <button onclick="logout()"
+                class="w-full text-left p-3 text-red-400 rounded-xl flex items-center gap-3 mt-10 hover:bg-red-900/20">🚪
+                Sair</button>
+        </nav>
+    </aside>
+
+    <main id="main-content" class="flex-1 flex flex-col overflow-hidden transition-all">
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center px-8 border-b border-slate-200">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="p-2 hover:bg-slate-100 rounded-lg text-slate-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M4 6h16M4 12h16m-7 6h7" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" />
+                    </svg>
+                </button>
+                <h2 id="titulo-pagina" class="text-xl font-bold text-slate-800 uppercase tracking-tight">📊 Painel Geral
+                </h2>
+            </div>
+            <div id="container-acoes-header"></div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-8">
+
+            <section id="aba-dashboard" class="aba-conteudo aba-ativa">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-slate-400">
+                        <p class="text-gray-500 text-xs uppercase font-black">Frota Total</p>
+                        <p id="totalVeiculos" class="text-3xl font-bold">0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
+                        <p class="text-gray-500 text-xs uppercase font-black">Viagens Hoje</p>
+                        <p id="totalAgendamentos" class="text-3xl font-bold">0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500">
+                        <p class="text-gray-500 text-xs uppercase font-black">Em Manutenção</p>
+                        <p id="manutencaoUrgente" class="text-3xl font-bold text-red-600">0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-emerald-500">
+                        <p class="text-gray-500 text-xs uppercase font-black">Disponíveis Agora</p>
+                        <p id="veiculosDisponiveis" class="text-3xl font-bold text-emerald-600">0</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="aba-agendamentos" class="aba-conteudo">
+                <div class="bg-white rounded-2xl border overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="bg-gray-800 text-white uppercase text-xs">
+                                <th class="p-2">📅 Cronograma</th>
+                                <th class="p-1">🏢 FINALIDADE</th>
+                                <th class="p-2">👤 Solicitante</th>
+                                <th class="p-2">✋ Condutor</th>
+                                <th class="p-2">🚗 Veículo</th>
+                                <th class="p-2 text-center">👥 Passag.</th>
+                                <th class="p-2">📌 Status</th>
+                                <th class="p-2">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaAgendamentos" class="divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="aba-secretarias" class="aba-conteudo">
+                <div class="bg-white rounded-2xl border overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <tbody id="tabelaSecretarias" class="divide-y"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="aba-departamentos" class="aba-conteudo">
+                <div class="bg-white rounded-2xl border overflow-hidden shadow-sm">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 border-b">
+                            <tr>
+                                <th class="p-4 font-bold text-slate-600 uppercase text-[10px]">Departamento</th>
+                                <th class="p-4 font-bold text-slate-600 uppercase text-[10px]">Secretaria Vinculada</th>
+                                <th class="p-4 font-bold text-slate-600 uppercase text-[10px] text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaDepartamentos" class="divide-y text-slate-700"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="aba-veiculos" class="aba-conteudo">
+                <div class="bg-white rounded-2xl border overflow-hidden shadow-sm">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 border-b">
+                            <tr class="text-slate-600 uppercase text-[10px] font-black">
+                                <th class="p-4">Modelo / Tipo</th>
+                                <th class="p-4 text-center">Placa</th>
+                                <th class="p-4 text-center">Capac.</th>
+                                <th class="p-4 text-center">KM Atual</th>
+                                <th class="p-4">Status</th>
+                                <th class="p-4 text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaVeiculos" class="divide-y text-slate-700"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="aba-solicitantes" class="aba-conteudo">
+                <div class="bg-white rounded-2xl border overflow-hidden shadow-sm">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 border-b">
+                            <tr>
+                                <th class="p-4 font-bold text-slate-600 uppercase text-[10px]">Nome</th>
+                                <th class="p-4 font-bold text-slate-600 uppercase text-[10px]">Documento</th>
+                                <th class="p-4 font-bold text-slate-600 uppercase text-[10px]">Vínculo</th>
+                                <th class="p-4 font-bold text-slate-600 uppercase text-[10px]">Contato</th>
+                                <th class="p-4 font-bold text-slate-600 uppercase text-[10px] text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaSolicitantes" class="divide-y text-slate-700"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="aba-condutores" class="aba-conteudo">
+                <div class="bg-white rounded-2xl border overflow-hidden shadow-sm">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 border-b">
+                            <tr>
+                                <th class="p-4 font-bold text-slate-600 uppercase text-[10px]">Motorista</th>
+                                <th class="p-4 font-bold text-slate-600 uppercase text-[10px]">CNH</th>
+                                <th class="p-4 font-bold text-slate-600 uppercase text-[10px]">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaCondutores" class="divide-y text-slate-700"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+    <div id="modalAgendamento"
+        class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-2xl shadow-2xl">
+            <h3 class="text-2xl font-black mb-6 text-slate-800">Novo Agendamento</h3>
+
+            <form id="formAgendamento" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1 ml-1 uppercase">Partida</label>
+                        <input type="datetime-local" id="ageData"
+                            class="w-full p-4 border rounded-2xl bg-slate-50 font-bold text-sm" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1 ml-1 uppercase">Retorno</label>
+                        <input type="datetime-local" id="ageRetorno"
+                            class="w-full p-4 border rounded-2xl bg-slate-50 font-bold text-sm" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1 ml-1 uppercase">Finalidade /
+                        Destino</label>
+                    <input type="text" id="ageItinerario" placeholder="Ex: Viagem para São Paulo - Secretaria de Saúde"
+                        class="w-full p-4 border rounded-2xl bg-slate-50 text-sm" required>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1 ml-1 uppercase">Solicitante</label>
+                        <select id="ageSolicitante" class="w-full p-4 border rounded-2xl bg-slate-50 font-bold text-sm"
+                            required>
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1 ml-1 uppercase">Nº Passageiros</label>
+                        <input type="number" id="agePassageiros" min="1" value="1"
+                            class="w-full p-4 border rounded-2xl bg-slate-50 font-bold text-sm">
+                    </div>
+
+                    <div class="relative">
+                        <label class="block text-xs font-bold text-slate-500 mb-1 ml-1 uppercase">Veículo</label>
+                        <select id="ageVeiculo" class="w-full p-4 border rounded-2xl bg-slate-50 font-bold text-sm"
+                            required></select>
+                        <span id="erro-ageVeiculo"
+                            class="text-[10px] text-red-500 hidden font-bold absolute -bottom-4 left-2"></span>
+                    </div>
+
+                    <div class="relative">
+                        <label class="block text-xs font-bold text-slate-500 mb-1 ml-1 uppercase">Motorista</label>
+                        <select id="ageCondutor" class="w-full p-4 border rounded-2xl bg-slate-50 font-bold text-sm"
+                            required></select>
+                        <span id="erro-ageCondutor"
+                            class="text-[10px] text-red-500 hidden font-bold absolute -bottom-4 left-2"></span>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <label class="block text-xs font-bold text-slate-500 mb-1 ml-1 uppercase">Observações</label>
+                    <input type="text" id="ageObs" placeholder="Informações adicionais..."
+                        class="w-full p-4 border rounded-2xl bg-slate-50 text-sm">
+                </div>
+
+                <div class="flex gap-4 pt-4">
+                    <button type="button" onclick="fecharModal('modalAgendamento')"
+                        class="flex-1 font-bold text-slate-400 hover:text-slate-600 transition-colors">Cancelar</button>
+                    <button type="submit"
+                        class="flex-[2] p-4 bg-blue-600 text-white rounded-2xl font-black hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all active:scale-95">
+                        SALVAR AGENDAMENTO
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalVeiculo"
+        class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl">
+            <h3 class="text-2xl font-black mb-6">Novo Veículo</h3>
+            <form id="formVeiculo" class="space-y-4">
+                <input type="text" id="veiModelo" placeholder="Modelo" class="w-full p-4 border rounded-2xl bg-slate-50"
+                    required>
+                <div class="flex gap-4 px-2 mb-2">
+                    <label class="flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer">
+                        <input type="radio" name="tipoPlaca" value="CINZA" checked onchange="ajustarPlaceholderPlaca()">
+                        CINZA (Antiga)
+                    </label>
+                    <label class="flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer">
+                        <input type="radio" name="tipoPlaca" value="MERC"> MERCORSUL
+                    </label>
+                </div>
+                <input type="text" id="veiPlaca" placeholder="ABC-1234"
+                    class="w-full p-4 border rounded-2xl bg-slate-50 font-mono uppercase" maxlength="8" required>
+                <p id="erro-veiPlaca" class="text-red-500 text-[10px] font-bold px-2 hidden"></p>
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="number" id="veiCapacidade" placeholder="Capacidade (Lugares)"
+                        class="w-full p-4 border rounded-2xl bg-slate-50 font-bold" required>
+                    <input type="number" id="veiKm" placeholder="KM Atual"
+                        class="w-full p-4 border rounded-2xl bg-slate-50 font-bold">
+                </div>
+
+                <select id="veiTipo" class="w-full p-4 border rounded-2xl bg-slate-50">
+                    <option value="PASSEIO">Passeio</option>
+                    <option value="UTILITARIO">Utilitário</option>
+                    <option value="VAN">Van/Micro-ônibus</option>
+                </select>
+                <div class="p-2">
+                    <label
+                        class="flex items-center gap-3 p-4 border rounded-2xl bg-slate-50 cursor-pointer hover:bg-red-50 transition-colors">
+                        <input type="checkbox" id="veiManutencao" class="w-5 h-5 accent-red-600">
+                        <span class="text-sm font-black text-slate-700 uppercase">Colocar em Manutenção</span>
+                    </label>
+                </div>
+                <div class="flex gap-4">
+                    <button type="button" onclick="fecharModal('modalVeiculo')" class="flex-1 font-bold">Voltar</button>
+                    <button type="submit"
+                        class="flex-1 p-4 bg-slate-800 text-white rounded-2xl font-black">CADASTRAR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalSecretaria"
+        class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl">
+            <h3 class="text-2xl font-black mb-6">Nova Secretaria</h3>
+            <form id="formSecretaria" class="space-y-4">
+                <input type="text" id="secNome" placeholder="Nome da Secretaria"
+                    class="w-full p-4 border rounded-2xl bg-slate-50" required>
+                <div class="flex gap-4">
+                    <button type="button" onclick="fecharModal('modalSecretaria')"
+                        class="flex-1 font-bold">Voltar</button>
+                    <button type="submit"
+                        class="flex-1 p-4 bg-slate-800 text-white rounded-2xl font-black">SALVAR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalDepto" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
+        <div class="bg-white p-8 rounded-3xl w-96 shadow-2xl">
+            <h2 class="text-xl font-black mb-4">Novo Departamento</h2>
+            <form id="formDepto" class="space-y-4">
+                <input type="text" id="deptoNome" class="w-full border p-4 rounded-2xl bg-slate-50"
+                    placeholder="Nome do Depto" required>
+                <select id="deptoSecretaria" class="w-full border p-4 rounded-2xl bg-slate-50" required></select>
+                <div class="flex gap-2">
+                    <button type="button" onclick="fecharModal('modalDepto')"
+                        class="flex-1 font-bold text-slate-400">Cancelar</button>
+                    <button type="submit"
+                        class="flex-1 bg-blue-600 text-white p-4 rounded-2xl font-black">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalSolicitante"
+        class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl">
+            <h3 class="text-2xl font-black mb-6">Novo Solicitante</h3>
+            <form id="formSolicitante" class="space-y-4">
+                <input type="text" id="solNome" placeholder="Nome Completo"
+                    class="w-full p-4 border rounded-2xl bg-slate-50" required>
+                <p id="erro-solNome" class="text-red-500 text-[10px] font-bold px-2 hidden"></p>
+
+                <input type="text" id="solTelefone" placeholder="Telefone"
+                    class="w-full p-4 border rounded-2xl bg-slate-50">
+                <div class="flex gap-4 px-2">
+                    <label class="flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer">
+                        <input type="radio" name="tipoDoc" value="CPF" checked onchange="ajustarMascaraDoc()"> CPF
+                    </label>
+                    <label class="flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer">
+                        <input type="radio" name="tipoDoc" value="MATRICULA" onchange="ajustarMascaraDoc()"> Matrícula
+                    </label>
+                </div>
+                <input type="text" id="solDoc" placeholder="000.000.000-00"
+                    class="w-full p-4 border rounded-2xl bg-slate-50 font-mono">
+                <p id="erro-solDoc" class="text-red-500 text-[10px] font-bold px-2 hidden"></p>
+
+                <select id="solSecretaria" class="w-full p-4 border rounded-2xl bg-slate-50 text-sm font-bold">
+                    <option value="">Selecione a Secretaria...</option>
+                </select>
+                <select id="solDepartamento" class="w-full p-4 border rounded-2xl bg-slate-50 text-sm font-bold">
+                    <option value="">Selecione o Departamento...</option>
+                </select>
+                <div class="flex gap-4 pt-4">
+                    <button type="button" onclick="fecharModal('modalSolicitante')"
+                        class="flex-1 font-bold text-slate-400">Voltar</button>
+                    <button type="submit"
+                        class="flex-[2] p-4 bg-slate-800 text-white rounded-2xl font-black">CADASTRAR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalCondutor"
+        class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl">
+            <h3 class="text-2xl font-black mb-6">Novo Condutor</h3>
+            <form id="formCondutor" class="space-y-4">
+                <input type="text" id="conNome" placeholder="Nome do Motorista"
+                    class="w-full p-4 border rounded-2xl bg-slate-50" required>
+                <input type="text" id="conCnh" placeholder="Nº da CNH" class="w-full p-4 border rounded-2xl bg-slate-50"
+                    required>
+                <div class="flex gap-4 pt-4">
+                    <button type="button" onclick="fecharModal('modalCondutor')"
+                        class="flex-1 font-bold text-slate-400">Cancelar</button>
+                    <button type="submit"
+                        class="flex-[2] p-4 bg-orange-600 text-white rounded-2xl font-black">SALVAR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed top-5 right-5 z-[100] space-y-3"></div>
+    <script src="scripts.js"></script>
+</body>
+
+</html>

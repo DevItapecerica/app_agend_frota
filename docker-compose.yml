@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:latest
+    container_name: frota-db
+    # Adicionamos o fuso horário diretamente no comando de inicialização
+    command: >
+      --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: frota_municipal
+      TZ: 'America/Sao_Paulo'
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      # Mantemos o mapeamento do host para garantir sincronia do sistema operacional do container
+      - /etc/localtime:/etc/localtime:ro
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "9050:8080"
+
+volumes:
+  db_data:
+    driver: local

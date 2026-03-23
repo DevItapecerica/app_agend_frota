@@ -1,0 +1,125 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// --- ENUMS (Defina-os no topo ou final para o Prisma achar fácil) ---
+
+enum StatusVeiculo {
+  DISPONIVEL
+  EM_VIAGEM
+  MANUTENCAO
+}
+
+enum Role {
+  ADMIN
+  GESTOR
+  REQUISITANTE
+}
+
+// --- MODELOS ---
+
+model Secretaria {
+  id            Int            @id @default(autoincrement())
+  nome          String         @unique
+  departamentos Departamento[]
+  veiculos      Veiculo[]
+  usuarios      Usuario[]
+  solicitantes  Solicitante[]
+}
+
+model Departamento {
+  id           Int        @id @default(autoincrement())
+  nome         String
+  secretariaId Int
+  secretaria   Secretaria @relation(fields: [secretariaId], references: [id])
+  ativo        Boolean    @default(true)
+
+  // RELAÇÕES OPOSTAS (Adicione esta linha abaixo)
+  agendamentos Agendamento[]
+  solicitantes Solicitante[] // <-- ADICIONE ESTA LINHA AQUI
+}
+
+model Solicitante {
+  id        Int     @id @default(autoincrement())
+  nome      String
+  documento String? @unique
+  telefone  String?
+
+  secretariaId Int?
+  secretaria   Secretaria? @relation(fields: [secretariaId], references: [id])
+
+  // RELAÇÃO COM DEPARTAMENTO
+  departamentoId Int?
+  departamento   Departamento? @relation(fields: [departamentoId], references: [id])
+
+  agendamentos Agendamento[]
+  createdAt    DateTime      @default(now())
+}
+
+model Veiculo {
+  id           Int           @id @default(autoincrement())
+  placa        String        @unique
+  modelo       String
+  capacidade   Int
+  tipo         String
+  status       StatusVeiculo @default(DISPONIVEL)
+  kmAtual      Int           @default(0)
+  emManutencao  Boolean         @default(false)
+  secretariaId Int?
+  secretaria   Secretaria?   @relation(fields: [secretariaId], references: [id])
+  agendamentos Agendamento[]
+}
+
+model Condutor {
+  id           Int           @id @default(autoincrement())
+  nome         String
+  cnh          String        @unique
+  validadeCnh  DateTime? // Opcional para não travar
+  telefone     String? // Opcional para não travar
+  agendamentos Agendamento[]
+}
+
+model Usuario {
+  id           Int         @id @default(autoincrement())
+  nome         String
+  email        String      @unique
+  senha        String
+  role         Role        @default(REQUISITANTE)
+  secretariaId Int?
+  secretaria   Secretaria? @relation(fields: [secretariaId], references: [id])
+}
+
+model Agendamento {
+  id          Int               @id @default(autoincrement())
+  dataSaida   DateTime
+  dataRetorno DateTime
+  itinerario  String
+  passageiros Int               @default(1)
+  observacao  String?
+  status      StatusAgendamento @default(PENDENTE) // Usando o Enum corrigido
+
+  solicitante   Solicitante @relation(fields: [solicitanteId], references: [id])
+  solicitanteId Int
+
+  veiculo   Veiculo @relation(fields: [veiculoId], references: [id])
+  veiculoId Int
+
+  condutor   Condutor @relation(fields: [condutorId], references: [id])
+  condutorId Int
+
+  // Deixamos opcional (?) para o banco aceitar os registros antigos
+  departamento   Departamento? @relation(fields: [departamentoId], references: [id])
+  departamentoId Int?
+}
+
+enum StatusAgendamento {
+  PENDENTE
+  APROVADO
+  NEGADO
+  CONCLUIDO
+}
