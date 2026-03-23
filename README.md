@@ -18,12 +18,12 @@ Agend_Frota/
 ## 🚀 Passo a Passo de Instalação e Configuração
 
 ### 1. Instalação de Dependências
-npm install -g npm@latest
-npm install
-npm install fastify @prisma/client zod @fastify/cors @fastify/jwt @fastify/static bcrypt
-npm install -D typescript tsx prisma @prisma/config @types/node @types/bcrypt
-npx tsc --init --outDir dist --rootDir src
-npx prisma init
+<br>npm install -g npm@latest</br>
+<br>npm install</br>
+<br>npm install fastify @prisma/client zod @fastify/cors @fastify/jwt @fastify/static bcrypt</br>
+<br>npm install -D typescript tsx prisma @prisma/config @types/node @types/bcrypt</br>
+<br>npx tsc --init --outDir dist --rootDir src</br>
+</br>npx prisma init</br>
 
 ### 2. Banco de Dados e Migrations
 # Subir o banco
