@@ -1,9 +1,12 @@
 # app_agend_frota
 Aplicação de agendamento de veiculos frota municipal
 
-#Fastfy + node.js 22.16.0 + Prisma 6.95
+Fastfy + node.js 22.16.0 + Prisma 6.95
+
 npm install -g npm@latest \\para criar o diretorio node_modules
+
 npm init -y
+
 npm install fastify @prisma/client zod
 npm install -D typescript ts-node nodemon @types/node @types/validator prisma
 npx tsc --init --outDir dist --rootDir src
