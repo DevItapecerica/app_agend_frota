@@ -1,36 +1,59 @@
-# app_agend_frota
-Aplicação de agendamento de veiculos frota municipal
+# 🚗 Sistema de Agendamento de Frota Municipal
 
-Docker + Fastfy + node.js 22.16.0 + Prisma 6.95
+Este guia contém todos os passos para configurar, instalar e rodar a aplicação.
 
-Inicie o Servidor dev database 
+## 📂 Estrutura do Projeto
+Agend_Frota/
+┣ 📂 prisma/                     # Migrations, Schema e Seed
+┣ 📂 public/                     # Frontend (HTML/JS)
+┣ 📂 src/                        # Backend (Fastify)
+┣ 📜 .env                        # Database URL
+┣ 📜 docker-compose.yml          # MariaDB Docker
+┣ 📜 package.json                # Scripts e Deps
+┗ 📜 tsconfig.json               # Config TypeScript
 
-docker-compose up -d
+## 🛠️ Tecnologias
+- Node.js v22.16.0 | Fastify v5.2.1 | Prisma v6.4.1 | MariaDB | Zod
 
-No console da aplicação dev
+## 🚀 Passo a Passo de Instalação e Configuração
 
-npm install -g npm@latest \\para criar o diretorio node_modules
-
-npm init -y
-
-npm install fastify @prisma/client zod 
-
-npm install -D typescript ts-node nodemon @types/node @types/validator prisma
-
+### 1. Instalação de Dependências
+npm install -g npm@latest
+npm install
+npm install fastify @prisma/client zod @fastify/cors @fastify/jwt @fastify/static bcrypt
+npm install -D typescript tsx prisma @prisma/config @types/node @types/bcrypt
 npx tsc --init --outDir dist --rootDir src
-
 npx prisma init
 
-npx prisma migrate dev --name init
+### 2. Banco de Dados e Migrations
+# Subir o banco
+docker-compose up -d
 
-npm install @prisma/config
+# Configurar o .env
+# DATABASE_URL="mysql://login:senha@localhost:3306/frota_municipal"
 
-npm install @fastify/cors
+# Rodar Migrations (Comando para Windows/PowerShell)
+$env:DATABASE_URL="mysql://root:root@127.0.0.1:3306/frota_municipal"; npx prisma migrate dev --name inicializacao_tabelas
 
-npm install -D tsx 
+# Gerar Client e Popular Banco
+npx prisma generate
+npx prisma db seed
 
-//caso comandos acima não funicone a migration
+### 3. Execução
+# Rodar servidor em dev
+npm run dev
 
-npx prisma migrate dev --name init --url="mysql://root:root@localhost:3306/frota_municipal" ou $env:DATABASE_URL="mysql://root:root@127.0.0.1:3306/frota_municipal"; npx prisma migrate dev --name ajuste_schema
+# Abrir painel do banco
+npx prisma studio
 
-npx prisma migrate dev --name inicializacao_tabelas
+## 📜 Scripts Rápidos
+- dev: tsx watch src/app.ts
+- prisma:generate: npx prisma generate
+- prisma:migrate: npx prisma migrate dev
+
+## 📝 Histórico de Migrations
+1. inicializacao_tabelas
+2. ajuste_frota_geral_e_solicitantes
+3. adicionar_observacao_agendamento
+4. add_dept_to_solicitante
+5. add_em_manutencao
