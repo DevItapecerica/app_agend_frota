@@ -25,12 +25,12 @@ Este guia contém todos os passos para configurar, instalar e rodar a aplicaçã
     * **`package.json`** — Manifesto do projeto (Scripts, metadados e lista de bibliotecas).
     * **`PRISMA_MASTER_GUIDE.md`** — Guia técnico com os códigos de configuração e segurança.
     * **`prisma.config.ts`** — Configuração dinâmica para o Prisma CLI ler o seu `.env`.
-    * **`README.md`** — Documentação geral para humanos sobre como rodar o projeto.
+    * **`README.md`** — Documentação geral sobre como rodar o projeto.
     * **`teste-conexao.ts`** — Script utilitário para validar se o banco está respondendo.
     * **`tsconfig.json`** — Configurações de compilação do TypeScript para o Node.js.
 
 ## 🛠️ Tecnologias
-- Node.js v22.16.0 | Fastify v5.2.1 | Prisma v6.4.1 | MariaDB | Zod
+- Node.js v22.16.0 | Fastify v5.2.1 | Prisma v6.19 | MariaDB v1.2.2 | Zod
 
 ## 🚀 Passo a Passo de Instalação e Configuração
 
@@ -40,6 +40,7 @@ Este guia contém todos os passos para configurar, instalar e rodar a aplicaçã
 <br>npm install fastify @prisma/client zod @fastify/cors @fastify/jwt @fastify/static bcrypt</br>
 <br>npm install -D typescript tsx prisma @prisma/config @types/node @types/bcrypt</br>
 <br>npx tsc --init --outDir dist --rootDir src</br>
+<br>npm install dotenv</br>
 </br>npx prisma init</br>
 
 ### 2. Banco de Dados e Migrations
@@ -49,8 +50,12 @@ docker-compose up -d
 # Configurar o .env
 # DATABASE_URL="mysql://login:senha@localhost:3306/frota_municipal"
 
-# Rodar Migrations (Comando para Windows/PowerShell)
-$env:DATABASE_URL="mysql://root:root@127.0.0.1:3306/frota_municipal"; npx prisma migrate dev --name inicializacao_tabelas
+# Rodar Migrations Manualmente (Comando para Windows/PowerShell)
+$env:DATABASE_URL="mysql://login:senha@127.0.0.1:3306/frota_municipal"; npx prisma migrate dev --name inicializacao_tabelas
+
+#Teste Database
+npx prisma db pull  
+npx tsx teste-conexao.ts
 
 # Gerar Client e Popular Banco
 npx prisma generate
