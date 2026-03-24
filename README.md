@@ -3,14 +3,31 @@
 Este guia contém todos os passos para configurar, instalar e rodar a aplicação.
 
 ## 📂 Estrutura do Projeto
-Agend_Frota/
-┣ 📂 prisma/                     # Migrations, Schema e Seed
-┣ 📂 public/                     # Frontend (HTML/JS)
-┣ 📂 src/                        # Backend (Fastify)
-┣ 📜 .env                        # Database URL
-┣ 📜 docker-compose.yml          # MariaDB Docker
-┣ 📜 package.json                # Scripts e Deps
-┗ 📜 tsconfig.json               # Config TypeScript
+### 📂 Estrutura de Diretórios e Arquivos (Agend_Frota)
+
+* **`Agend_Frota/`** — Diretório raiz do projeto.
+    * **`prisma/`** — Pasta central de configuração e modelagem do banco de dados.
+        * **`migrations/`** — Histórico de versões e alterações estruturais do banco de dados.
+        * **`schema.prisma`** — Arquivo mestre onde ficam os Modelos (tabelas) e Enums.
+        * **`seed.ts`** — Script para popular o banco com dados iniciais (Ex: Cadastrar secretarias padrão).
+    * **`public/`** — Arquivos estáticos (Frontend) servidos diretamente ao navegador.
+        * **`dashboard.html` / `dashboard1.html`** — Interfaces de visualização e gestão da frota.
+        * **`index.html`** — Página de entrada (Landing page ou Login).
+        * **`scripts.js`** — Lógica do Frontend (Manipulação de DOM e requisições à API).
+    * **`src/`** — Código-fonte principal do servidor (Backend).
+        * **`lib/`** — Bibliotecas de apoio e instâncias compartilhadas.
+            * **`prisma.ts`** — Instância global do Prisma Client para conexão com o banco.
+        * **`app.ts`** — Ponto de entrada do servidor (Rotas, Middleware e Inicialização).
+    * **`.env`** — Variáveis de ambiente (Credenciais de banco e chaves secretas).
+    * **`.gitignore`** — Arquivos e pastas que o Git não deve rastrear (Ex: node_modules).
+    * **`docker-compose.yml`** — Orquestração de containers (Levanta o MariaDB e a App com um comando).
+    * **`package-lock.json`** — Trava as versões exatas das dependências instaladas.
+    * **`package.json`** — Manifesto do projeto (Scripts, metadados e lista de bibliotecas).
+    * **`PRISMA_MASTER_GUIDE.md`** — Guia técnico com os códigos de configuração e segurança.
+    * **`prisma.config.ts`** — Configuração dinâmica para o Prisma CLI ler o seu `.env`.
+    * **`README.md`** — Documentação geral para humanos sobre como rodar o projeto.
+    * **`teste-conexao.ts`** — Script utilitário para validar se o banco está respondendo.
+    * **`tsconfig.json`** — Configurações de compilação do TypeScript para o Node.js.
 
 ## 🛠️ Tecnologias
 - Node.js v22.16.0 | Fastify v5.2.1 | Prisma v6.4.1 | MariaDB | Zod
